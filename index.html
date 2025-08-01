@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Login/Register Overlay -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <h1>⛪ Church Management System</h1>
+            <div class="form-toggle">
+                <button class="toggle-btn active" onclick="toggleForm('login')">Login</button>
+                <button class="toggle-btn" onclick="toggleForm('register')">Register</button>
+            </div>
+            <div id="loginForm" class="login-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button onclick="login()">Login</button>
+            </div>
+            <div id="registerForm" class="login-form hidden">
+                <input type="text" id="regUsername" placeholder="Choose Username" required>
+                <input type="password" id="regPassword" placeholder="Choose Password" required>
+                <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                <input type="email" id="regEmail" placeholder="Email Address" required>
+                <button onclick="register()">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container hidden" id="mainContent">
+        <header>
+            <h1>⛪ Church Management System</h1>
+            <p>Manage churches, members, and tithes efficiently</p>
+            <button id="logoutBtn" onclick="logout()" class="logout-btn">Logout</button>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('church-management')">Church Management</button>
+            <button class="tab-btn" onclick="showTab('member-management')">Member Management</button>
+            <button class="tab-btn" onclick="showTab('tithe-management')">Tithe Management</button>
+            <button class="tab-btn" onclick="showTab('expenses-management')">Expenses</button>
+            <button class="tab-btn" onclick="showTab('reports')">Reports</button>
+        </nav>
+
+        <!-- Church Management Tab -->
+        <div id="church-management" class="tab-content active">
+            <div class="card">
+                <h2>Church Registration</h2>
+                <div class="form-group">
+                    <input type="text" id="churchName" placeholder="Enter church name">
+                    <input type="text" id="churchInitials" placeholder="Church initials (2-4 letters)" maxlength="4">
+                    <button onclick="registerChurch()">Register Church</button>
+                </div>
+                <small>Church initials will be used for member ID generation (e.g., "SBC" for "Saint Baptist Church")</small>
+            </div>
+
+            <div class="card">
+                <h2>Registered Churches</h2>
+                <div id="churchList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- Member Management Tab -->
+        <div id="member-management" class="tab-content">
+            <div class="card">
+                <h2>Register New Member</h2>
+                <div class="form-group">
+                    <select id="memberChurch">
+                        <option value="">Select Church</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="memberName" placeholder="Full Name" required>
+                    <select id="memberSex" required>
+                        <option value="">Select Sex</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="memberAge" placeholder="Age" min="1" max="120" required>
+                    <select id="memberTitle" required>
+                        <option value="">Select Title</option>
+                        <option value="Mr.">Mr.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Dr.">Dr.</option>
+                        <option value="Rev.">Rev.</option>
+                        <option value="Pastor">Pastor</option>
+                        <option value="Elder">Elder</option>
+                        <option value="Deacon">Deacon</option>
+                        <option value="Deaconess">Deaconess</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button onclick="registerMember()">Register Member</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Member Actions</h2>
+                <div class="form-group">
+                    <select id="actionChurch">
+                        <option value="">Select Church</option>
+                    </select>
+                    <select id="memberId">
+                        <option value="">Select Member</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="showTransferForm()">Transfer Member</button>
+                    <button onclick="showFlagForm()">Flag Member</button>
+                    <button onclick="deleteMember()">Delete Member</button>
+                </div>
+
+                <!-- Transfer Form -->
+                <div id="transferForm" class="hidden">
+                    <h3>Transfer Member</h3>
+                    <select id="targetChurch">
+                        <option value="">Select Target Church</option>
+                    </select>
+                    <button onclick="transferMember()">Transfer</button>
+                    <button onclick="hideTransferForm()">Cancel</button>
+                </div>
+
+                <!-- Flag Form -->
+                <div id="flagForm" class="hidden">
+                    <h3>Flag Member</h3>
+                    <select id="memberStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                    <button onclick="flagMember()">Update Status</button>
+                    <button onclick="hideFlagForm()">Cancel</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Members Directory</h2>
+                <div class="form-group">
+                    <select id="viewChurch" onchange="displayMembers()">
+                        <option value="">Select Church to View Members</option>
+                    </select>
+                    <input type="text" id="searchMembers" placeholder="Search members..." onkeyup="searchMembers()">
+                    <button onclick="printMembershipReport()" class="print-btn">🖨️ Print Membership List</button>
+                </div>
+                <div id="membersList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- Tithe Management Tab -->
+        <div id="tithe-management" class="tab-content">
+            <div class="card">
+                <h2>Record Tithe</h2>
+                <div class="form-group">
+                    <select id="titheChurch" onchange="loadMembersForTithe()">
+                        <option value="">Select Church</option>
+                    </select>
+                    <select id="titheMember">
+                        <option value="">Select Member</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="titheAmount" placeholder="Amount in Euros (€)" step="0.01" min="0">
+                    <select id="titheType">
+                        <option value="tithe">Tithe</option>
+                        <option value="offering">Offering</option>
+                        <option value="donation">Donation</option>
+                        <option value="special">Special Collection</option>
+                    </select>
+                    <button onclick="recordTithe()">Record Tithe</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Tithe Analytics</h2>
+                <div class="form-group">
+                    <select id="chartChurch" onchange="updateTitheCharts()">
+                        <option value="">Select Church for Analytics</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3>Contributions by Type</h3>
+                        <canvas id="titheTypeChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Monthly Trends</h3>
+                        <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>View Tithes</h2>
+                <div class="form-group">
+                    <select id="viewTitheChurch" onchange="viewChurchTithes()">
+                        <option value="">Select Church</option>
+                    </select>
+                    <input type="text" id="searchTitheMember" placeholder="Search member..." onkeyup="filterTithes()">
+                    <select id="viewTitheMember" onchange="filterTithes()">
+                        <option value="">All Members</option>
+                    </select>
+                    <button onclick="printTitheReport()" class="print-btn">🖨️ Print Tithe Report</button>
+                </div>
+                <div class="tithe-summary">
+                    <div id="titheTotalAmount"></div>
+                    <div id="titheStats"></div>
+                </div>
+                <div id="tithesList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- Expenses Management Tab -->
+        <div id="expenses-management" class="tab-content">
+            <div class="card">
+                <h2>Record Expense</h2>
+                <div class="form-group">
+                    <select id="expenseChurch" onchange="updateExpenseDisplay()">
+                        <option value="">Select Church</option>
+                    </select>
+                    <input type="text" id="expenseTitle" placeholder="Expense Title" required>
+                    <select id="expenseCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="supplies">Supplies</option>
+                        <option value="salaries">Salaries</option>
+                        <option value="events">Events</option>
+                        <option value="charity">Charity/Outreach</option>
+                        <option value="equipment">Equipment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="expenseAmount" placeholder="Amount in Euros (€)" step="0.01" min="0">
+                    <input type="date" id="expenseDate" required>
+                    <textarea id="expenseDescription" placeholder="Description (optional)" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="recordExpense()">Record Expense</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Financial Overview</h2>
+                <div class="form-group">
+                    <select id="overviewChurch" onchange="updateFinancialOverview()">
+                        <option value="">Select Church</option>
+                    </select>
+                    <select id="overviewPeriod" onchange="updateFinancialOverview()">
+                        <option value="all">All Time</option>
+                        <option value="year">This Year</option>
+                        <option value="month">This Month</option>
+                        <option value="week">This Week</option>
+                    </select>
+                    <button onclick="printFinancialReport()" class="print-btn">🖨️ Print Financial Report</button>
+                </div>
+                <div id="financialSummary" class="financial-summary">
+                    <!-- Financial summary will be displayed here -->
+                </div>
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3>Income vs Expenses</h3>
+                        <canvas id="balanceChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Expenses by Category</h3>
+                        <canvas id="expenseCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Expense Records</h2>
+                <div class="form-group">
+                    <select id="viewExpenseChurch" onchange="displayExpenses()">
+                        <option value="">Select Church</option>
+                    </select>
+                    <input type="text" id="searchExpense" placeholder="Search expenses..." onkeyup="filterExpenses()">
+                    <select id="filterExpenseCategory" onchange="filterExpenses()">
+                        <option value="">All Categories</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="supplies">Supplies</option>
+                        <option value="salaries">Salaries</option>
+                        <option value="events">Events</option>
+                        <option value="charity">Charity/Outreach</option>
+                        <option value="equipment">Equipment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div id="expensesList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <h2>Generate Tithe Reports</h2>
+                <div class="form-group">
+                    <select id="reportChurch">
+                        <option value="">Select Church</option>
+                    </select>
+                    <select id="reportPeriod">
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                    <button onclick="generateReport()">Generate Report</button>
+                </div>
+                <div id="reportResults" class="list-container"></div>
+            </div>
+
+            <div class="card">
+                <h2>Top Contributors</h2>
+                <div class="form-group">
+                    <select id="topContributorsChurch" onchange="showTopContributors()">
+                        <option value="">Select Church</option>
+                    </select>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="topContributorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="notification" class="notification hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
